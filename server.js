@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const authenticateToken = require('./middleware/authMiddleware.js');
+const {authenticateToken, authorizeRole} = require('./middleware/auth.js');
 
 const app = express();
 const port = process.env.PORT || 3500;
@@ -39,7 +39,7 @@ app.post('/movies', authenticateToken, (req, res) => {
     });
 });
 
-app.put('/movies/:id', authenticateToken, (req, res) => {
+app.put('/movies/:id', [authenticateToken, authorizeRole('admin')], (req, res) => {
     const { title, director, year } = req.body;
     const { id } = req.params;
     const sql = 'UPDATE movies SET title = ?, director = ?, year = ? WHERE id = ?';
@@ -49,7 +49,7 @@ app.put('/movies/:id', authenticateToken, (req, res) => {
     });
 });
 
-app.delete('/movies/:id', authenticateToken, (req, res) => {
+app.delete('/movies/:id', [authenticateToken, authorizeRole('admin')], (req, res) => {
     const { id } = req.params;
     const sql = 'DELETE FROM movies WHERE id = ?';
     db.run(sql, id, function(err) {
